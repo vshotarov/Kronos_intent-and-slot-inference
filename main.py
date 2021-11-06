@@ -5,8 +5,6 @@ import torch
 from html.parser import HTMLParser
 
 import sys
-TRAIN_DATASET_FILE = sys.argv[1]
-TEST_DATASET_FILE = sys.argv[2]
 RECOGNIZED_SLOTS = ["location", "time"]
 INTENTS = ["time.current","time.timer","weather.current","weather.future","other"]
 SLOTS = ["PAD", "O", "B-location", "I-location", "B-time", "I-time"]
@@ -269,12 +267,15 @@ def inferIntentAndSlots(x, models):
     this_slot_outputs = slot_outputs[i][1:encoding["input_ids"].shape[1]-1]
     this_intent = torch.argmax(torch.nn.functional.softmax(this_intent_outputs, dim=0))
     this_slots = torch.argmax(torch.nn.functional.softmax(this_slot_outputs, dim=1), dim=1)
-    print(" ".join(tokenized), "; intent: ", INTENTS[this_intent.item()],
-            "; slots: ", " ".join([SLOTS[k] for k in this_slots.detach()]))
+    #print(" ".join(tokenized), "; intent: ", INTENTS[this_intent.item()],
+    #        "; slots: ", " ".join([SLOTS[k] for k in this_slots.detach()]))
 
     return torch.nn.functional.softmax(intent_outputs[0], dim=0)[this_intent.item()], INTENTS[this_intent.item()]
 
 if __name__ == "__main__":
+    TRAIN_DATASET_FILE = sys.argv[1]
+    TEST_DATASET_FILE = sys.argv[2]
+
     tokenizer = DistilBertTokenizer.from_pretrained('distilbert-base-uncased')
     model = DistilBertModel.from_pretrained("distilbert-base-uncased", output_hidden_states=True)
 
