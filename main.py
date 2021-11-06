@@ -269,8 +269,17 @@ def inferIntentAndSlots(x, models):
     this_slots = torch.argmax(torch.nn.functional.softmax(this_slot_outputs, dim=1), dim=1)
     #print(" ".join(tokenized), "; intent: ", INTENTS[this_intent.item()],
     #        "; slots: ", " ".join([SLOTS[k] for k in this_slots.detach()]))
+    recognized_slots = {}
+    for word, slot in zip(tokenized, this_slots):
+        if slot > 1:
+            slot_type, slot_name = SLOTS[slot].split("-")
+            if slot_name not in recognized_slots.keys():
+                recognized_slots[slot_name] = []
+            recognized_slots[slot_name].append(word)
+    for slot_name,slot_value in recognized_slots.items():
+        recognized_slots[slot_name] = " ".join(slot_value)
 
-    return torch.nn.functional.softmax(intent_outputs[0], dim=0)[this_intent.item()], INTENTS[this_intent.item()]
+    return torch.nn.functional.softmax(intent_outputs[0], dim=0)[this_intent.item()], INTENTS[this_intent.item()], recognized_slots
 
 if __name__ == "__main__":
     TRAIN_DATASET_FILE = sys.argv[1]
