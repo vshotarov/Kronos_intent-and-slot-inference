@@ -276,8 +276,18 @@ def inferIntentAndSlots(x, models):
             if slot_name not in recognized_slots.keys():
                 recognized_slots[slot_name] = []
             recognized_slots[slot_name].append(word)
+
     for slot_name,slot_value in recognized_slots.items():
-        recognized_slots[slot_name] = " ".join(slot_value)
+        joined_value = ""
+        for v in slot_value:
+            if "#" not in v:
+                if joined_value:
+                    joined_value += " "
+                joined_value += v
+            else:
+                joined_value += v.replace("#","")
+
+        recognized_slots[slot_name] = joined_value
 
     return torch.nn.functional.softmax(intent_outputs[0], dim=0)[this_intent.item()], INTENTS[this_intent.item()], recognized_slots
 
